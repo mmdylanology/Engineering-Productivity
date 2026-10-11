@@ -1,0 +1,33 @@
+name: Release & Changelog Assembler
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  assemble-release:
+    name: Compile Changelog Fragments & Build Assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile Unreleased Fragments
+        run: |
+          echo 'Assembling changes/unreleased/*.yaml into CHANGELOG.md'
+
+      - name: Build Knowledge Graph for Release
+        run: |
+          python tools/viz/build_graph.py . docs/graph.html
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            docs/graph.html
