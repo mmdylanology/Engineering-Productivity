@@ -1,0 +1,9 @@
+name: active_users
+label: Monthly Active Users (MAU)
+type: simple
+measure: user_id
+filter: "last_active_at >= CURRENT_DATE - INTERVAL '30 days'"
+dimensions: [user.country, user.plan_tier]
+additivity: non_additive
+owner: analytics-team
+description: Count of unique active users over the trailing 30 days. Non-additive across time.

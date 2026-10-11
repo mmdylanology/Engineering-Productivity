@@ -1,0 +1,8 @@
+name: user
+description: Primary account entity representing registered platform users.
+primary_key: user_id
+dimensions:
+  - name: signup_date
+    type: date
+  - name: country
+    type: categorical

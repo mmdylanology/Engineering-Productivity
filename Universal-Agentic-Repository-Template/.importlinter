@@ -1,0 +1,20 @@
+[importlinter]
+root_package = src
+
+[importlinter:contract:layers]
+name = Strict layered architecture
+type = layers
+layers =
+    src.api
+    src.pipeline
+    src.core
+
+[importlinter:contract:core-purity]
+name = Core business logic must be pure (no network/IO)
+type = forbidden
+source_modules =
+    src.core
+forbidden_modules =
+    requests
+    httpx
+    urllib

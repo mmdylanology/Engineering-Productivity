@@ -1,0 +1,18 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.4
+    hooks:
+      - id: ruff
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: agentsync-check
+        name: verify agent adapters in sync
+        entry: python tools/agentsync.py --check
+        language: system
+        pass_filenames: false
+      - id: protect-paths
+        name: verify protected paths
+        entry: python tools/guards/protect_paths.py --staged
+        language: system
+        pass_filenames: false

@@ -1,0 +1,9 @@
+id: feat-001-example
+kind: feature                     # feature | fix | infra | docs | breaking
+subsystems: [api, core]
+summary: Implemented generic OAuth provider integration.
+impact:
+  user_visible: true
+  breaking: false
+decision_refs: [ADR-0000]
+authors: [human:engineer, claude-code]

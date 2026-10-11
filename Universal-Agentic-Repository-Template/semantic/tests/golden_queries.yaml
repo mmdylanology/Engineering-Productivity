@@ -1,0 +1,4 @@
+test_cases:
+  - query: "What was the active user count in Canada?"
+    expected_metric: active_users
+    expected_filters: [{ dimension: "user.country", operator: "=", value: "Canada" }]

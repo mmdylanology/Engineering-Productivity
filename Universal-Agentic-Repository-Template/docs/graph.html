@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Agentic Repository Knowledge Graph</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #090d16;
+      color: #f1f5f9;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: #f8fafc; }
+    .subtitle { font-size: 12px; color: #94a3b8; font-weight: 400; }
+    .stats {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .stat-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-num { font-weight: 600; color: #38bdf8; }
+    #main-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: calc(100vh - 60px);
+    }
+    #cy {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 50% 50%, #0f172a 0%, #060911 100%);
+    }
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 12px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .legend-title { font-weight: 600; color: #94a3b8; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 5;
+    }
+    .btn {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f1f5f9;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(255, 255, 255, 0.25); color: #fff; }
+    #info-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 320px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 18px;
+      z-index: 6;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+      display: none;
+      backdrop-filter: blur(16px);
+    }
+    #info-panel h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: #fff; word-break: break-all; }
+    #info-panel .meta { font-size: 12px; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    #info-panel p { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px; }
+    #info-panel code { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: rgba(0,0,0,0.4); padding: 4px 6px; border-radius: 4px; color: #38bdf8; display: block; word-break: break-all; }
+    #info-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; }
+    #info-close:hover { color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="badge-icon">AG</div>
+      <div>
+        <h1>Universal Agentic Repository Knowledge Graph</h1>
+        <div class="subtitle">System Architecture, Semantic Layer, Decisions, Rules & Memory Network</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat-pill">Nodes: <span class="stat-num" id="node-count">0</span></div>
+      <div class="stat-pill">Edges: <span class="stat-num" id="edge-count">0</span></div>
+    </div>
+  </header>
+  <div id="main-container">
+    <div id="cy"></div>
+    
+    <div class="legend">
+      <div class="legend-title">Pillars & Categories</div>
+      <div class="legend-item"><div class="dot" style="background:#6366f1"></div> Core Hub</div>
+      <div class="legend-item"><div class="dot" style="background:#ec4899"></div> Agent Rules & Scopes</div>
+      <div class="legend-item"><div class="dot" style="background:#8b5cf6"></div> Agent Skills</div>
+      <div class="legend-item"><div class="dot" style="background:#10b981"></div> Semantic Layer (Entities & Metrics)</div>
+      <div class="legend-item"><div class="dot" style="background:#f59e0b"></div> Architecture Decisions (ADRs)</div>
+      <div class="legend-item"><div class="dot" style="background:#06b6d4"></div> Knowledge & Computations</div>
+      <div class="legend-item"><div class="dot" style="background:#ef4444"></div> Governance & Safety</div>
+      <div class="legend-item"><div class="dot" style="background:#3b82f6"></div> Memory & Issue Tracker</div>
+    </div>
+
+    <div class="controls" id="controls-box">
+      <button class="btn" onclick="resetView()">Fit View</button>
+      <button class="btn" onclick="runLayout()">Re-layout</button>
+    </div>
+
+    <div id="info-panel">
+      <button id="info-close" onclick="closeInfo()">✕</button>
+      <div class="meta" id="info-category">Category</div>
+      <h3 id="info-title">Node Label</h3>
+      <p id="info-desc">Description</p>
+      <code id="info-path">path/to/file</code>
+    </div>
+  </div>
+
+  <script>
+    var data = {"nodes": [{"data": {"id": "core", "label": "Universal Agentic System", "category": "Core Hub", "desc": "Central architectural backbone coordinating agents, semantic contracts, and governance.", "path": "ARCHITECTURE.md & AGENTS.md", "color": "#6366f1", "size": 48}}, {"data": {"id": "cat_rules", "label": "Agent Directives & Rules", "category": "Pillar Category", "desc": "Scoped rules triggering based on file globs", "path": "cat_rules", "color": "#ec4899", "size": 36}}, {"data": {"id": "cat_skills", "label": "Agent Skills Runbooks", "category": "Pillar Category", "desc": "Procedural multi-step workflows for autonomous execution", "path": "cat_skills", "color": "#8b5cf6", "size": 36}}, {"data": {"id": "cat_semantic", "label": "Semantic Contracts & Tests", "category": "Pillar Category", "desc": "Governed business entities, metrics, and ground truth tests", "path": "cat_semantic", "color": "#10b981", "size": 36}}, {"data": {"id": "cat_decisions", "label": "Architecture Decisions (ADRs)", "category": "Pillar Category", "desc": "MADR-compliant immutable architectural logs", "path": "cat_decisions", "color": "#f59e0b", "size": 36}}, {"data": {"id": "cat_knowledge", "label": "Knowledge & Computations", "category": "Pillar Category", "desc": "Ubiquitous domain ontology and mathematical attestations", "path": "cat_knowledge", "color": "#06b6d4", "size": 36}}, {"data": {"id": "cat_governance", "label": "Governance & Path Protection", "category": "Pillar Category", "desc": "Pre-commit guards, AST invariants, and protected paths", "path": "cat_governance", "color": "#ef4444", "size": 36}}, {"data": {"id": "cat_memory", "label": "Distributed Memory & Issues", "category": "Pillar Category", "desc": "JSONL micro-tasks, session handoffs, and changelog fragments", "path": "cat_memory", "color": "#3b82f6", "size": 36}}, {"data": {"id": "rule_data-contracts.md", "label": "Rule: data-contracts.md", "category": "Agent Rule", "desc": "Scoped rule enforcing standards for data-contracts.md", "path": ".agents/rules/data-contracts.md", "color": "#ec4899", "size": 24}}, {"data": {"id": "rule_backend-api.md", "label": "Rule: backend-api.md", "category": "Agent Rule", "desc": "Scoped rule enforcing standards for backend-api.md", "path": ".agents/rules/backend-api.md", "color": "#ec4899", "size": 24}}, {"data": {"id": "skill_add-metric", "label": "Skill: /add-metric", "category": "Agent Skill", "desc": "Executable skill runbook for add-metric", "path": ".agents/skills/add-metric/SKILL.md", "color": "#8b5cf6", "size": 24}}, {"data": {"id": "skill_write-adr", "label": "Skill: /write-adr", "category": "Agent Skill", "desc": "Executable skill runbook for write-adr", "path": ".agents/skills/write-adr/SKILL.md", "color": "#8b5cf6", "size": 24}}, {"data": {"id": "skill_wrapup", "label": "Skill: /wrapup", "category": "Agent Skill", "desc": "Executable skill runbook for wrapup", "path": ".agents/skills/wrapup/SKILL.md", "color": "#8b5cf6", "size": 24}}, {"data": {"id": "entity_entity_template.yaml", "label": "Entity: entity_template.yaml", "category": "Semantic Entity", "desc": "Governed entity contract mapping physical columns and dimensions.", "path": "semantic/entities/entity_template.yaml", "color": "#10b981", "size": 24}}, {"data": {"id": "metric_metric_template.yaml", "label": "Metric: metric_template.yaml", "category": "Semantic Metric", "desc": "Governed metric contract defining additivity and valid calculations.", "path": "semantic/metrics/metric_template.yaml", "color": "#10b981", "size": 24}}, {"data": {"id": "test_must_refuse.yaml", "label": "Suite: must_refuse.yaml", "category": "Semantic Test", "desc": "Ground truth queries and refusal test cases for LLM verification.", "path": "semantic/tests/must_refuse.yaml", "color": "#10b981", "size": 22}}, {"data": {"id": "test_golden_queries.yaml", "label": "Suite: golden_queries.yaml", "category": "Semantic Test", "desc": "Ground truth queries and refusal test cases for LLM verification.", "path": "semantic/tests/golden_queries.yaml", "color": "#10b981", "size": 22}}, {"data": {"id": "adr_0000-use-madr-template.md", "label": "ADR: 0000-use-madr-template.md", "category": "Decision Record", "desc": "Architectural decision record in MADR format.", "path": "docs/decisions/0000-use-madr-template.md", "color": "#f59e0b", "size": 24}}, {"data": {"id": "term_domain_term_template.md", "label": "Glossary: domain_term_template.md", "category": "Domain Glossary", "desc": "Ubiquitous domain vocabulary and disambiguation rules.", "path": "knowledge/glossary/domain_term_template.md", "color": "#06b6d4", "size": 22}}, {"data": {"id": "calc_attested_computation_template.md", "label": "Attestation: attested_computation_template.md", "category": "Attested Computation", "desc": "Formal mathematical formula proof, bounds, and precision guarantees.", "path": "knowledge/computations/attested_computation_template.md", "color": "#06b6d4", "size": 22}}, {"data": {"id": "gov_protected", "label": "Protected Paths Spec", "category": "Governance", "desc": "Human-gated files agents cannot edit without explicit bypass token.", "path": "governance/protected_paths.yaml", "color": "#ef4444", "size": 22}}, {"data": {"id": "gov_guard", "label": "Pre-Commit Guard", "category": "Governance", "desc": "Git pre-commit enforcement tool blocking unauthorized agent modifications.", "path": "tools/guards/protect_paths.py", "color": "#ef4444", "size": 22}}, {"data": {"id": "gov_semgrep", "label": "Semgrep AST Rules", "category": "Governance", "desc": "Static analysis preventing SQL injection and security anti-patterns.", "path": ".semgrep/repo_rules.yml", "color": "#ef4444", "size": 22}}, {"data": {"id": "mem_issues", "label": "JSONL Issue Tracker (Beads)", "category": "Issue Tracking", "desc": "Git-native task tracker allowing agents and humans to track micro-tasks without merge conflicts.", "path": ".beads/issues.jsonl", "color": "#3b82f6", "size": 22}}, {"data": {"id": "mem_sessions", "label": "Session Handoff Ledger", "category": "Session Memory", "desc": "Chronological handoff notes capturing accomplished work, dead ends, and immediate next tasks.", "path": ".agents/sessions/template.md", "color": "#3b82f6", "size": 22}}, {"data": {"id": "mem_changes", "label": "Changelog Fragments", "category": "Changelog Management", "desc": "Distributed change fragments compiled into master changelog on release.", "path": "changes/unreleased/fragment_template.yaml", "color": "#3b82f6", "size": 22}}], "edges": [{"data": {"id": "e_core_cat_rules", "source": "core", "target": "cat_rules"}}, {"data": {"id": "e_core_cat_skills", "source": "core", "target": "cat_skills"}}, {"data": {"id": "e_core_cat_semantic", "source": "core", "target": "cat_semantic"}}, {"data": {"id": "e_core_cat_decisions", "source": "core", "target": "cat_decisions"}}, {"data": {"id": "e_core_cat_knowledge", "source": "core", "target": "cat_knowledge"}}, {"data": {"id": "e_core_cat_governance", "source": "core", "target": "cat_governance"}}, {"data": {"id": "e_core_cat_memory", "source": "core", "target": "cat_memory"}}, {"data": {"id": "e_rule_data-contracts.md", "source": "cat_rules", "target": "rule_data-contracts.md"}}, {"data": {"id": "e_rule_backend-api.md", "source": "cat_rules", "target": "rule_backend-api.md"}}, {"data": {"id": "e_skill_add-metric", "source": "cat_skills", "target": "skill_add-metric"}}, {"data": {"id": "e_skill_write-adr", "source": "cat_skills", "target": "skill_write-adr"}}, {"data": {"id": "e_skill_wrapup", "source": "cat_skills", "target": "skill_wrapup"}}, {"data": {"id": "e_entity_entity_template.yaml", "source": "cat_semantic", "target": "entity_entity_template.yaml"}}, {"data": {"id": "e_metric_metric_template.yaml", "source": "cat_semantic", "target": "metric_metric_template.yaml"}}, {"data": {"id": "e_test_must_refuse.yaml", "source": "cat_semantic", "target": "test_must_refuse.yaml"}}, {"data": {"id": "e_test_golden_queries.yaml", "source": "cat_semantic", "target": "test_golden_queries.yaml"}}, {"data": {"id": "e_adr_0000-use-madr-template.md", "source": "cat_decisions", "target": "adr_0000-use-madr-template.md"}}, {"data": {"id": "e_term_domain_term_template.md", "source": "cat_knowledge", "target": "term_domain_term_template.md"}}, {"data": {"id": "e_calc_attested_computation_template.md", "source": "cat_knowledge", "target": "calc_attested_computation_template.md"}}, {"data": {"id": "e_gov_protected", "source": "cat_governance", "target": "gov_protected"}}, {"data": {"id": "e_gov_guard", "source": "cat_governance", "target": "gov_guard"}}, {"data": {"id": "e_gov_semgrep", "source": "cat_governance", "target": "gov_semgrep"}}, {"data": {"id": "e_mem_issues", "source": "cat_memory", "target": "mem_issues"}}, {"data": {"id": "e_mem_sessions", "source": "cat_memory", "target": "mem_sessions"}}, {"data": {"id": "e_mem_changes", "source": "cat_memory", "target": "mem_changes"}}]};
+    document.getElementById('node-count').innerText = data.nodes.length;
+    document.getElementById('edge-count').innerText = data.edges.length;
+
+    var cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: data.nodes.concat(data.edges),
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'label': 'data(label)',
+            'color': '#f8fafc',
+            'font-family': 'Inter, sans-serif',
+            'font-size': '11px',
+            'font-weight': 500,
+            'text-valign': 'bottom',
+            'text-margin-y': 6,
+            'background-color': 'data(color)',
+            'width': 'data(size)',
+            'height': 'data(size)',
+            'border-width': 2,
+            'border-color': 'rgba(255,255,255,0.2)',
+            'transition-property': 'background-color, border-color, border-width',
+            'transition-duration': '0.2s'
+          }
+        },
+        {
+          selector: 'node:selected',
+          style: {
+            'border-width': 4,
+            'border-color': '#fff',
+            'shadow-blur': 15,
+            'shadow-color': '#6366f1'
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 1.5,
+            'line-color': '#334155',
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': '#475569',
+            'curve-style': 'bezier',
+            'opacity': 0.7
+          }
+        },
+        {
+          selector: 'edge:selected',
+          style: {
+            'width': 2.5,
+            'line-color': '#94a3b8',
+            'target-arrow-color': '#94a3b8',
+            'opacity': 1.0
+          }
+        }
+      ],
+      layout: {
+        name: 'cose',
+        idealEdgeLength: 80,
+        nodeOverlap: 20,
+        refresh: 20,
+        fit: true,
+        padding: 50,
+        randomize: false,
+        componentSpacing: 100,
+        nodeRepulsion: 400000,
+        edgeElasticity: 100,
+        nestingFactor: 5,
+        gravity: 80,
+        numIter: 1000
+      }
+    });
+
+    cy.on('tap', 'node', function(evt){
+      var n = evt.target;
+      var d = n.data();
+      document.getElementById('info-title').innerText = d.label;
+      document.getElementById('info-category').innerText = d.category || 'Repository Node';
+      document.getElementById('info-category').style.color = d.color || '#38bdf8';
+      document.getElementById('info-desc').innerText = d.desc || 'Active component in universal agentic repository architecture.';
+      document.getElementById('info-path').innerText = d.path || d.id;
+      document.getElementById('info-panel').style.display = 'block';
+    });
+
+    function closeInfo() {
+      document.getElementById('info-panel').style.display = 'none';
+    }
+
+    function resetView() {
+      cy.fit(null, 50);
+    }
+
+    function runLayout() {
+      cy.layout({ name: 'cose', animate: true, fit: true, padding: 50 }).run();
+    }
+  </script>
+</body>
+</html>

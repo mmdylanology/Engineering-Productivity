@@ -1,0 +1,6 @@
+servers:
+  repo-semantic:
+    command: python
+    args: ["-m", "servers.mcp_template.server"]
+    mode: read
+    description: Exposes semantic metric catalog and safe query compilation to agents.

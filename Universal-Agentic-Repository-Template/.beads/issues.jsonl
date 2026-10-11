@@ -1,0 +1,2 @@
+{"id":"init-01","title":"Initialize repository using universal agentic template","status":"closed","blocked_by":[]}
+{"id":"feat-01","title":"Connect production database and define initial semantic contracts","status":"ready","blocked_by":["init-01"]}

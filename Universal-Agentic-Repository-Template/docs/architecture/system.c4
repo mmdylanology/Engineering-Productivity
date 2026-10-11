@@ -1,0 +1,17 @@
+specification {
+  element user
+  element webApp
+  element apiService
+  element database
+}
+
+model {
+  user = person "Platform User"
+  webApp = softwareSystem "Web Frontend"
+  apiService = softwareSystem "API Backend"
+  database = softwareSystem "Database & Lakehouse"
+
+  user -> webApp "Uses via Browser"
+  webApp -> apiService "Sends HTTPS requests"
+  apiService -> database "Reads & writes data"
+}

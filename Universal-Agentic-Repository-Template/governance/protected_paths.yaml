@@ -1,0 +1,14 @@
+immutable:
+  - id: PROT-01
+    glob: "docs/decisions/0*.md"
+    reason: Accepted ADRs are immutable historical records.
+    remedy: Create a new ADR superseding this decision using the write-adr skill.
+  - id: PROT-02
+    glob: "**/_generated/**"
+    reason: Generated files must not be edited manually.
+    remedy: Edit the source schema or config and run `make generate`.
+
+no_delete:
+  - "AGENTS.md"
+  - "config/params.yaml"
+  - "governance/**"

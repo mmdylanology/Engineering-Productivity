@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Agentic Repository Knowledge Graph</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #090d16;
+      color: #f1f5f9;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: #f8fafc; }
+    .subtitle { font-size: 12px; color: #94a3b8; font-weight: 400; }
+    .stats {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .stat-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-num { font-weight: 600; color: #38bdf8; }
+    #main-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: calc(100vh - 60px);
+    }
+    #cy {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 50% 50%, #0f172a 0%, #060911 100%);
+    }
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 12px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .legend-title { font-weight: 600; color: #94a3b8; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 5;
+    }
+    .btn {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f1f5f9;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(255, 255, 255, 0.25); color: #fff; }
+    #info-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 320px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 18px;
+      z-index: 6;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+      display: none;
+      backdrop-filter: blur(16px);
+    }
+    #info-panel h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: #fff; word-break: break-all; }
+    #info-panel .meta { font-size: 12px; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    #info-panel p { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px; }
+    #info-panel code { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: rgba(0,0,0,0.4); padding: 4px 6px; border-radius: 4px; color: #38bdf8; display: block; word-break: break-all; }
+    #info-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; }
+    #info-close:hover { color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="badge-icon">AG</div>
+      <div>
+        <h1>Universal Agentic Repository Knowledge Graph</h1>
+        <div class="subtitle">System Architecture, Semantic Layer, Decisions, Rules & Memory Network</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat-pill">Nodes: <span class="stat-num" id="node-count">0</span></div>
+      <div class="stat-pill">Edges: <span class="stat-num" id="edge-count">0</span></div>
+    </div>
+  </header>
+  <div id="main-container">
+    <div id="cy"></div>
+    
+    <div class="legend">
+      <div class="legend-title">Pillars & Categories</div>
+      <div class="legend-item"><div class="dot" style="background:#6366f1"></div> Core Hub</div>
+      <div class="legend-item"><div class="dot" style="background:#ec4899"></div> Agent Rules & Scopes</div>
+      <div class="legend-item"><div class="dot" style="background:#8b5cf6"></div> Agent Skills</div>
+      <div class="legend-item"><div class="dot" style="background:#10b981"></div> Semantic Layer (Entities & Metrics)</div>
+      <div class="legend-item"><div class="dot" style="background:#f59e0b"></div> Architecture Decisions (ADRs)</div>
+      <div class="legend-item"><div class="dot" style="background:#06b6d4"></div> Knowledge & Computations</div>
+      <div class="legend-item"><div class="dot" style="background:#ef4444"></div> Governance & Safety</div>
+      <div class="legend-item"><div class="dot" style="background:#3b82f6"></div> Memory & Issue Tracker</div>
+    </div>
+
+    <div class="controls" id="controls-box">
+      <button class="btn" onclick="resetView()">Fit View</button>
+      <button class="btn" onclick="runLayout()">Re-layout</button>
+    </div>
+
+    <div id="info-panel">
+      <button id="info-close" onclick="closeInfo()">✕</button>
+      <div class="meta" id="info-category">Category</div>
+      <h3 id="info-title">Node Label</h3>
+      <p id="info-desc">Description</p>
+      <code id="info-path">path/to/file</code>
+    </div>
+  </div>
+
+  <script>
+    var data = /*__DATA__*/;
+    document.getElementById('node-count').innerText = data.nodes.length;
+    document.getElementById('edge-count').innerText = data.edges.length;
+
+    var cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: data.nodes.concat(data.edges),
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'label': 'data(label)',
+            'color': '#f8fafc',
+            'font-family': 'Inter, sans-serif',
+            'font-size': '11px',
+            'font-weight': 500,
+            'text-valign': 'bottom',
+            'text-margin-y': 6,
+            'background-color': 'data(color)',
+            'width': 'data(size)',
+            'height': 'data(size)',
+            'border-width': 2,
+            'border-color': 'rgba(255,255,255,0.2)',
+            'transition-property': 'background-color, border-color, border-width',
+            'transition-duration': '0.2s'
+          }
+        },
+        {
+          selector: 'node:selected',
+          style: {
+            'border-width': 4,
+            'border-color': '#fff',
+            'shadow-blur': 15,
+            'shadow-color': '#6366f1'
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 1.5,
+            'line-color': '#334155',
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': '#475569',
+            'curve-style': 'bezier',
+            'opacity': 0.7
+          }
+        },
+        {
+          selector: 'edge:selected',
+          style: {
+            'width': 2.5,
+            'line-color': '#94a3b8',
+            'target-arrow-color': '#94a3b8',
+            'opacity': 1.0
+          }
+        }
+      ],
+      layout: {
+        name: 'cose',
+        idealEdgeLength: 80,
+        nodeOverlap: 20,
+        refresh: 20,
+        fit: true,
+        padding: 50,
+        randomize: false,
+        componentSpacing: 100,
+        nodeRepulsion: 400000,
+        edgeElasticity: 100,
+        nestingFactor: 5,
+        gravity: 80,
+        numIter: 1000
+      }
+    });
+
+    cy.on('tap', 'node', function(evt){
+      var n = evt.target;
+      var d = n.data();
+      document.getElementById('info-title').innerText = d.label;
+      document.getElementById('info-category').innerText = d.category || 'Repository Node';
+      document.getElementById('info-category').style.color = d.color || '#38bdf8';
+      document.getElementById('info-desc').innerText = d.desc || 'Active component in universal agentic repository architecture.';
+      document.getElementById('info-path').innerText = d.path || d.id;
+      document.getElementById('info-panel').style.display = 'block';
+    });
+
+    function closeInfo() {
+      document.getElementById('info-panel').style.display = 'none';
+    }
+
+    function resetView() {
+      cy.fit(null, 50);
+    }
+
+    function runLayout() {
+      cy.layout({ name: 'cose', animate: true, fit: true, padding: 50 }).run();
+    }
+  </script>
+</body>
+</html>

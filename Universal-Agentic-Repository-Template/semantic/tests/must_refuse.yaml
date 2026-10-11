@@ -1,0 +1,3 @@
+refusal_cases:
+  - query: "Show me active users by eye color"
+    expected_refusal_reason: "Dimension 'eye color' is not declared on entity 'user'."
